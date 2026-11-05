@@ -1,0 +1,1066 @@
+{
+  "$schema": "tool discovery registry — maps executable names to language, role, and vscode settings",
+  "languages": {
+    "python": {
+      "extensions": [".py", ".pyi", ".pyw"],
+      "filetypes": ["python"],
+      "languageId": "python",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["pylsp", "python-lsp-server"],
+            "vscodeExtension": "ms-python.python",
+            "settings": {
+              "python.languageServer": "Pylsp"
+            }
+          },
+          {
+            "executables": ["pyright", "pyright-langserver"],
+            "vscodeExtension": "ms-python.python",
+            "settings": {
+              "python.languageServer": "Pylance"
+            }
+          },
+          {
+            "executables": ["jedi-language-server"],
+            "vscodeExtension": "ms-python.python",
+            "settings": {
+              "python.languageServer": "Jedi"
+            }
+          },
+          {
+            "executables": ["ruff", "ruff-lsp"],
+            "vscodeExtension": "charliermarsh.ruff",
+            "settings": {
+              "python.languageServer": "Ruff"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["debugpy", "python-debugpy"],
+            "vscodeExtension": "ms-python.python",
+            "adapter": "python"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["black"],
+            "vscodeExtension": "ms-python.black-formatter",
+            "settings": {
+              "python.formatting.provider": "black"
+            }
+          },
+          {
+            "executables": ["ruff"],
+            "vscodeExtension": "charliermarsh.ruff",
+            "settings": {
+              "python.formatting.provider": "ruff"
+            }
+          },
+          {
+            "executables": ["autopep8"],
+            "vscodeExtension": "ms-python.autopep8",
+            "settings": {
+              "python.formatting.provider": "autopep8"
+            }
+          },
+          {
+            "executables": ["yapf"],
+            "vscodeExtension": "ms-python.python",
+            "settings": {
+              "python.formatting.provider": "yapf"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["ruff"],
+            "vscodeExtension": "charliermarsh.ruff",
+            "settings": {
+              "python.linting.ruffEnabled": true
+            }
+          },
+          {
+            "executables": ["flake8"],
+            "vscodeExtension": "ms-python.flake8",
+            "settings": {
+              "python.linting.flake8Enabled": true
+            }
+          },
+          {
+            "executables": ["pylint"],
+            "vscodeExtension": "ms-python.pylint",
+            "settings": {
+              "python.linting.pylintEnabled": true
+            }
+          },
+          {
+            "executables": ["mypy"],
+            "vscodeExtension": "ms-python.mypy-type-checker",
+            "settings": {
+              "python.linting.mypyEnabled": true
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["python3", "python"],
+            "vscodeExtension": "ms-python.python",
+            "settings": {
+              "python.defaultInterpreterPath": "{path}"
+            }
+          }
+        ]
+      }
+    },
+
+    "javascript_typescript": {
+      "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"],
+      "filetypes": ["javascript", "typescript", "javascriptreact", "typescriptreact"],
+      "languageId": "typescript",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["typescript-language-server", "ts-language-server"],
+            "vscodeExtension": "ms-vscode.vscode-typescript-next",
+            "settings": {
+              "typescript.tsserver.path": "{path}"
+            }
+          },
+          {
+            "executables": ["vtsls"],
+            "vscodeExtension": "vscodevim.vim",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["node"],
+            "vscodeExtension": "ms-vscode.js-debug",
+            "adapter": "node"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["prettier"],
+            "vscodeExtension": "esbenp.prettier-vscode",
+            "settings": {
+              "editor.defaultFormatter": "esbenp.prettier-vscode",
+              "prettier.prettierPath": "{path}"
+            }
+          },
+          {
+            "executables": ["biome", "biome-format"],
+            "vscodeExtension": "biomejs.biome",
+            "settings": {
+              "editor.defaultFormatter": "biomejs.biome"
+            }
+          },
+          {
+            "executables": ["deno"],
+            "vscodeExtension": "denoland.vscode-deno",
+            "settings": {
+              "deno.enable": true
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["eslint", "eslint_d"],
+            "vscodeExtension": "dbaeumer.vscode-eslint",
+            "settings": {
+              "eslint.enable": true,
+              "eslint.execArgv": []
+            }
+          },
+          {
+            "executables": ["biome"],
+            "vscodeExtension": "biomejs.biome",
+            "settings": {}
+          },
+          {
+            "executables": ["oxlint"],
+            "vscodeExtension": "oxc.oxc-vscode",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["tsc", "typescript"],
+            "vscodeExtension": "ms-vscode.vscode-typescript-next",
+            "settings": {}
+          },
+          {
+            "executables": ["node", "nodejs"],
+            "vscodeExtension": "ms-vscode.node-extension-pack",
+            "settings": {}
+          },
+          {
+            "executables": ["deno"],
+            "vscodeExtension": "denoland.vscode-deno",
+            "settings": {}
+          },
+          {
+            "executables": ["bun"],
+            "vscodeExtension": "oven.bun-vscode",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "go": {
+      "extensions": [".go"],
+      "filetypes": ["go"],
+      "languageId": "go",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["gopls"],
+            "vscodeExtension": "golang.go",
+            "settings": {
+              "gopls.path": "{path}"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["dlv", "delve"],
+            "vscodeExtension": "golang.go",
+            "adapter": "go"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["gofmt", "goimports"],
+            "vscodeExtension": "golang.go",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["golangci-lint", "revive", "staticcheck"],
+            "vscodeExtension": "golang.go",
+            "settings": {
+              "go.lintTool": "{basename}"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["go"],
+            "vscodeExtension": "golang.go",
+            "settings": {
+              "go.gopath": "{env:GOPATH}"
+            }
+          }
+        ]
+      }
+    },
+
+    "rust": {
+      "extensions": [".rs"],
+      "filetypes": ["rust"],
+      "languageId": "rust",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["rust-analyzer", "rust_analyzer"],
+            "vscodeExtension": "rust-lang.rust-analyzer",
+            "settings": {
+              "rust-analyzer.server.path": "{path}"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["lldb", "rust-lldb", "codelldb"],
+            "vscodeExtension": "vadimcn.vscode-lldb",
+            "adapter": "lldb"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["rustfmt"],
+            "vscodeExtension": "rust-lang.rust-analyzer",
+            "settings": {
+              "rust-analyzer.rustfmt.path": "{path}"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["clippy", "cargo-clippy"],
+            "vscodeExtension": "rust-lang.rust-analyzer",
+            "settings": {
+              "rust-analyzer.check.command": "clippy"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["cargo", "rustc"],
+            "vscodeExtension": "rust-lang.rust-analyzer",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "c_cpp": {
+      "extensions": [".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh"],
+      "filetypes": ["c", "cpp"],
+      "languageId": "cpp",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["clangd"],
+            "vscodeExtension": "llvm-vs-code-extensions.vscode-clangd",
+            "settings": {
+              "clangd.path": "{path}"
+            }
+          },
+          {
+            "executables": ["ccls"],
+            "vscodeExtension": "ccls-project.ccls",
+            "settings": {
+              "ccls.launch.command": "{path}"
+            }
+          },
+          {
+            "executables": ["cpptools", "cpp-tools"],
+            "vscodeExtension": "ms-vscode.cpptools",
+            "settings": {
+              "C_Cpp.default.cppIntelliSenseEngine": "default"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["gdb"],
+            "vscodeExtension": "ms-vscode.cpptools",
+            "adapter": "cppdbg",
+            "settings": {
+              "miDebuggerPath": "{path}"
+            }
+          },
+          {
+            "executables": ["lldb"],
+            "vscodeExtension": "vadimcn.vscode-lldb",
+            "adapter": "lldb"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["clang-format"],
+            "vscodeExtension": "xaver.clang-format",
+            "settings": {
+              "C_Cpp.formatting": "clangFormat",
+              "clang-format.executable": "{path}"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["clang-tidy"],
+            "vscodeExtension": "notskm.clang-tidy",
+            "settings": {
+              "clang-tidy.executable": "{path}"
+            }
+          },
+          {
+            "executables": ["cppcheck"],
+            "vscodeExtension": "github.vscode-codeql",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["gcc", "g++", "cc", "c++"],
+            "vscodeExtension": "ms-vscode.cpptools",
+            "settings": {}
+          },
+          {
+            "executables": ["clang", "clang++"],
+            "vscodeExtension": "ms-vscode.cpptools",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "java": {
+      "extensions": [".java"],
+      "filetypes": ["java"],
+      "languageId": "java",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["jdtls", "jdt-language-server"],
+            "vscodeExtension": "redhat.java",
+            "settings": {
+              "java.jdt.ls.java.home": "{path}"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["java-debug", "vscode-java-debug"],
+            "vscodeExtension": "vscjava.vscode-java-debug",
+            "adapter": "java"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["google-java-format"],
+            "vscodeExtension": "redhat.java",
+            "settings": {
+              "java.format.settings.url": "https://raw.githubusercontent.com/google/styleguide/gh-pages/eclipse-java-google-style.xml"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["checkstyle", "spotbugs"],
+            "vscodeExtension": "redhat.java",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["javac", "java"],
+            "vscodeExtension": "redhat.java",
+            "settings": {}
+          },
+          {
+            "executables": ["mvn", "maven"],
+            "vscodeExtension": "vscjava.vscode-maven",
+            "settings": {}
+          },
+          {
+            "executables": ["gradle"],
+            "vscodeExtension": "vscjava.vscode-gradle",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "ruby": {
+      "extensions": [".rb", ".erb"],
+      "filetypes": ["ruby", "erb"],
+      "languageId": "ruby",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["solargraph"],
+            "vscodeExtension": "castwide.solargraph",
+            "settings": {
+              "solargraph.commandPath": "{path}"
+            }
+          },
+          {
+            "executables": ["ruby-lsp", "ruby_lsp"],
+            "vscodeExtension": "Shopify.ruby-lsp",
+            "settings": {}
+          },
+          {
+            "executables": ["rubocop"],
+            "vscodeExtension": "misogi.ruby-rubocop",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["rdbg", "rdebug-ide"],
+            "vscodeExtension": "KoichiSasada.vscode-rdbg",
+            "adapter": "ruby"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["rubocop"],
+            "vscodeExtension": "misogi.ruby-rubocop",
+            "settings": {
+              "ruby.format": "rubocop"
+            }
+          },
+          {
+            "executables": ["ruby-lsp"],
+            "vscodeExtension": "Shopify.ruby-lsp",
+            "settings": {}
+          },
+          {
+            "executables": ["prettier"],
+            "vscodeExtension": "esbenp.prettier-vscode",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["rubocop"],
+            "vscodeExtension": "misogi.ruby-rubocop",
+            "settings": {
+              "ruby.lint": {
+                "rubocop": true
+              }
+            }
+          },
+          {
+            "executables": ["standardrb"],
+            "vscodeExtension": "testdouble.standard-ruby",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["ruby", "irb"],
+            "vscodeExtension": "castwide.solargraph",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "php": {
+      "extensions": [".php", ".phtml"],
+      "filetypes": ["php"],
+      "languageId": "php",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["intelephense"],
+            "vscodeExtension": "bmewburn.vscode-intelephense-client",
+            "settings": {
+              "intelephense.environment.phpVersion": "{auto}"
+            }
+          },
+          {
+            "executables": ["phpactor"],
+            "vscodeExtension": "phpactor.vscode-phpactor",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["php", "xdebug"],
+            "vscodeExtension": "xdebug.php-debug",
+            "adapter": "php"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["php-cs-fixer"],
+            "vscodeExtension": "junstyle.php-cs-fixer",
+            "settings": {
+              "php-cs-fixer.executablePath": "{path}"
+            }
+          },
+          {
+            "executables": ["phpcbf"],
+            "vscodeExtension": "shevaua.phpcbf",
+            "settings": {
+              "phpcbf.executablePath": "{path}"
+            }
+          },
+          {
+            "executables": ["pint"],
+            "vscodeExtension": "open-southeners.laravel-pint",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["phpcs", "php-cs-fixer"],
+            "vscodeExtension": "ikappas.phpcs",
+            "settings": {
+              "phpcs.executablePath": "{path}"
+            }
+          },
+          {
+            "executables": ["phpstan", "psalm"],
+            "vscodeExtension": "SanderRonde.phpstan-vscode",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["php", "php-cli"],
+            "vscodeExtension": "bmewburn.vscode-intelephense-client",
+            "settings": {}
+          },
+          {
+            "executables": ["composer"],
+            "vscodeExtension": "ikappas.composer",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "csharp": {
+      "extensions": [".cs", ".csx"],
+      "filetypes": ["csharp"],
+      "languageId": "csharp",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["omnisharp", "omnisharp-roslyn", "OmniSharp"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "settings": {
+              "omnisharp.path": "{path}"
+            }
+          },
+          {
+            "executables": ["dotnet", "roslyn"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["netcoredbg", "vsdbg"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "adapter": "coreclr"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["dotnet-format", "csharpier"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["dotnet-format"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["dotnet", "msbuild", "mono"],
+            "vscodeExtension": "ms-dotnettools.csharp",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "html_css": {
+      "extensions": [".html", ".htm", ".css", ".scss", ".sass", ".less"],
+      "filetypes": ["html", "css", "scss", "sass", "less"],
+      "languageId": "html",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["vscode-html-language-server", "vscode-css-language-server"],
+            "vscodeExtension": "vscode.html-language-features",
+            "settings": {}
+          },
+          {
+            "executables": ["tailwindcss-language-server", "tailwind-language-server"],
+            "vscodeExtension": "bradlc.vscode-tailwindcss",
+            "settings": {
+              "tailwindCSS.lsp.path": "{path}"
+            }
+          },
+          {
+            "executables": ["ember-language-server"],
+            "vscodeExtension": "ember-tooling.ember-vscode",
+            "settings": {}
+          }
+        ],
+        "dap": [],
+        "formatter": [
+          {
+            "executables": ["prettier"],
+            "vscodeExtension": "esbenp.prettier-vscode",
+            "settings": {
+              "editor.defaultFormatter": "esbenp.prettier-vscode"
+            }
+          },
+          {
+            "executables": ["stylelint"],
+            "vscodeExtension": "stylelint.vscode-stylelint",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["stylelint"],
+            "vscodeExtension": "stylelint.vscode-stylelint",
+            "settings": {
+              "stylelint.enable": true
+            }
+          },
+          {
+            "executables": ["htmlhint"],
+            "vscodeExtension": "mkaufman.htmlhint",
+            "settings": {
+              "htmlhint.configFile": ".htmlhintrc"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": []
+      }
+    },
+
+    "shell_bash": {
+      "extensions": [".sh", ".bash", ".zsh"],
+      "filetypes": ["shellscript"],
+      "languageId": "shellscript",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["bash-language-server"],
+            "vscodeExtension": "mads-hartmann.bash-ide-vscode",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["bashdb"],
+            "vscodeExtension": "rogalmic.bash-debug",
+            "adapter": "bashdb"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["shfmt"],
+            "vscodeExtension": "mkhl.shfmt",
+            "settings": {
+              "shfmt.executablePath": "{path}"
+            }
+          },
+          {
+            "executables": ["beautysh"],
+            "vscodeExtension": "Mikael.beautysh",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["shellcheck"],
+            "vscodeExtension": "timonwong.shellcheck",
+            "settings": {
+              "shellcheck.executablePath": "{path}"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["bash", "sh", "zsh"],
+            "vscodeExtension": "mads-hartmann.bash-ide-vscode",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "lua": {
+      "extensions": [".lua"],
+      "filetypes": ["lua"],
+      "languageId": "lua",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["lua-language-server", "lua-lsp", "sumneko"],
+            "vscodeExtension": "sumneko.lua",
+            "settings": {
+              "lua.misc.executablePath": "{path}"
+            }
+          },
+          {
+            "executables": ["emmylua-ls"],
+            "vscodeExtension": "actboy168.lua-debug",
+            "settings": {}
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["lua-debug", "local-lua-debugger"],
+            "vscodeExtension": "actboy168.lua-debug",
+            "adapter": "lua"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["lua-format", "stylua"],
+            "vscodeExtension": "Koihik.lua-formatter",
+            "settings": {
+              "lua.format.path": "{path}"
+            }
+          },
+          {
+            "executables": ["stylua"],
+            "vscodeExtension": "JohnnyMorganz.stylua",
+            "settings": {
+              "stylua.styluaPath": "{path}"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["luacheck"],
+            "vscodeExtension": "dwen.luacheck",
+            "settings": {
+              "luacheck.executablePath": "{path}"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["lua", "luajit", "lua5.3", "lua5.4"],
+            "vscodeExtension": "sumneko.lua",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "dart": {
+      "extensions": [".dart"],
+      "filetypes": ["dart"],
+      "languageId": "dart",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["dart", "dart-language-server"],
+            "vscodeExtension": "Dart-Code.dart-code",
+            "settings": {
+              "dart.sdkPath": "{dir}"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["dart", "flutter"],
+            "vscodeExtension": "Dart-Code.dart-code",
+            "adapter": "dart"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["dart"],
+            "vscodeExtension": "Dart-Code.dart-code",
+            "settings": {
+              "dart.formatCommand": "{path}"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["dart"],
+            "vscodeExtension": "Dart-Code.dart-code",
+            "settings": {
+              "dart.additionalAnalyzerCommandLineArgs": ["--fatal-infos"]
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["dart", "flutter"],
+            "vscodeExtension": "Dart-Code.dart-code",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "kotlin": {
+      "extensions": [".kt", ".kts"],
+      "filetypes": ["kotlin"],
+      "languageId": "kotlin",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["kotlin-language-server"],
+            "vscodeExtension": "fwcd.kotlin",
+            "settings": {
+              "kotlin.languageServer.path": "{path}"
+            }
+          }
+        ],
+        "dap": [
+          {
+            "executables": ["kotlin-debug-adapter", "kdebug"],
+            "vscodeExtension": "fwcd.kotlin",
+            "adapter": "kotlin"
+          }
+        ],
+        "formatter": [
+          {
+            "executables": ["ktlint"],
+            "vscodeExtension": "fwcd.kotlin",
+            "settings": {
+              "kotlin.formatter": "ktlint"
+            }
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["ktlint", "detekt"],
+            "vscodeExtension": "fwcd.kotlin",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["kotlinc", "kotlin"],
+            "vscodeExtension": "fwcd.kotlin",
+            "settings": {}
+          },
+          {
+            "executables": ["gradle"],
+            "vscodeExtension": "fwcd.vscode-kotlin-gradle",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "sql": {
+      "extensions": [".sql"],
+      "filetypes": ["sql"],
+      "languageId": "sql",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["sql-language-server", "sqls"],
+            "vscodeExtension": " mtxr.sqltools",
+            "settings": {}
+          },
+          {
+            "executables": ["sqlls"],
+            "vscodeExtension": "mtxr.sqltools",
+            "settings": {}
+          }
+        ],
+        "dap": [],
+        "formatter": [
+          {
+            "executables": ["sql-formatter", "pg_format", "sqlformat"],
+            "vscodeExtension": "aws-scripting-guy.format-sql",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["sqlfluff"],
+            "vscodeExtension": "dorzey.sqlfluff",
+            "settings": {
+              "sqlfluff.executablePath": "{path}"
+            }
+          }
+        ],
+        "treeSitter": [],
+        "compiler": [
+          {
+            "executables": ["psql", "mysql", "sqlite3"],
+            "vscodeExtension": "mtxr.sqltools",
+            "settings": {}
+          }
+        ]
+      }
+    },
+
+    "json_yaml_toml": {
+      "extensions": [".json", ".yaml", ".yml", ".toml", ".jsonc"],
+      "filetypes": ["json", "yaml", "toml"],
+      "languageId": "json",
+      "tools": {
+        "lsp": [
+          {
+            "executables": ["yaml-language-server", "yaml-ls"],
+            "vscodeExtension": "redhat.vscode-yaml",
+            "settings": {
+              "yaml.languageServer.path": "{path}"
+            }
+          },
+          {
+            "executables": ["taplo"],
+            "vscodeExtension": "tamasfe.even-better-toml",
+            "settings": {
+              "evenBetterToml.server.path": "{path}"
+            }
+          }
+        ],
+        "dap": [],
+        "formatter": [
+          {
+            "executables": ["prettier"],
+            "vscodeExtension": "esbenp.prettier-vscode",
+            "settings": {
+              "editor.defaultFormatter": "esbenp.prettier-vscode"
+            }
+          },
+          {
+            "executables": ["taplo"],
+            "vscodeExtension": "tamasfe.even-better-toml",
+            "settings": {}
+          }
+        ],
+        "linter": [
+          {
+            "executables": ["yamllint"],
+            "vscodeExtension": "redhat.vscode-yaml",
+            "settings": {
+              "yaml.yamlLint.path": "{path}"
+            }
+          },
+          {
+            "executables": ["actionlint"],
+            "vscodeExtension": "GitHub.vscode-github-actions",
+            "settings": {}
+          }
+        ],
+        "treeSitter": [],
+        "compiler": []
+      }
+    }
+  },
+
+  "treeSitter": {
+    "note": "Tree-sitter parsers in VS Code/code-server are bundled inside extensions, not standalone executables on PATH. The grammar is selected by the extension, not by a CLI tool.",
+    "extensions": {
+      "python": ["nvim-treesitter.python"],
+      "javascript": ["nvim-treesitter.javascript"],
+      "typescript": ["nvim-treesitter.typescript"],
+      "go": ["nvim-treesitter.go"],
+      "rust": ["nvim-treesitter.rust"],
+      "c": ["nvim-treesitter.c"],
+      "cpp": ["nvim-treesitter.cpp"],
+      "java": ["nvim-treesitter.java"],
+      "ruby": ["nvim-treesitter.ruby"],
+      "php": ["nvim-treesitter.php"],
+      "csharp": ["nvim-treesitter.csharp"],
+      "html": ["nvim-treesitter.html"],
+      "css": ["nvim-treesitter.css"],
+      "bash": ["nvim-treesitter.bash"],
+      "lua": ["nvim-treesitter.lua"],
+      "dart": ["nvim-treesitter.dart"],
+      "kotlin": ["nvim-treesitter.kotlin"],
+      "sql": ["nvim-treesitter.sql"],
+      "json": ["nvim-treesitter.json"],
+      "yaml": ["nvim-treesitter.yaml"],
+      "toml": ["nvim-treesitter.toml"]
+    }
+  }
+}
