@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
-devtools-bridge — auto-discover installed dev tools on PATH and wire them
-into VS Code / code-server settings.json + install matching extensions.
+devtools-bridge — auto-discover installed dev tools on PATH, validate them,
+and wire them into VS Code / code-server settings.json + install matching extensions.
 
 Usage:
   python3 devtools-bridge.py [--dry-run] [--settings PATH] [--registry PATH] [--install-extensions] [--report PATH]
@@ -15,6 +15,7 @@ Flags:
   --report PATH         Write a JSON discovery report to PATH.
   --no-merge            Overwrite settings.json instead of merging.
   --languages a,b,c     Limit to specific languages (comma-separated).
+  --skip-validation     Skip the tool validation stage (version checks).
 """
 
 from __future__ import annotations
@@ -22,6 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -35,20 +37,18 @@ from typing import Any
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_REGISTRY = SCRIPT_DIR / "registry.json"
 
-# Priority order: first tool found per role per language wins, unless a later
-# entry has higher priority. We keep it simple: first match in registry order.
-
 # code-server / vs code CLI names to try, in priority order
 CLI_NAMES = ["code-server", "code", "vscode", "codium"]
 
-ROLE_ORDER = ["lsp", "dap", "formatter", "linter", "treeSitter", "compiler"]
+# Tree-sitter is intentionally excluded: parsers are bundled inside editor
+# extensions, not standalone executables on PATH.
+ROLE_ORDER = ["lsp", "dap", "formatter", "linter", "compiler"]
 
 ROLE_LABELS = {
     "lsp": "Language Server",
     "dap": "Debug Adapter",
     "formatter": "Formatter",
     "linter": "Linter",
-    "treeSitter": "Tree-sitter",
     "compiler": "Compiler / Build Tool",
 }
 
@@ -116,9 +116,7 @@ def fill_placeholders(value: Any, tool_path: str) -> Any:
             result = result.replace("{path}", str(p))
             result = result.replace("{basename}", p.name)
             result = result.replace("{dir}", str(p.parent))
-        # {env:VAR}
         if "{env:" in result:
-            import re
             def _env_replace(m: "re.Match[str]") -> str:
                 return os.environ.get(m.group(1), "")
             result = re.sub(r"\{env:([^}]+)\}", _env_replace, result)
@@ -211,13 +209,61 @@ def pick_primary(discovered: dict) -> dict[str, dict[str, dict | None]]:
 
 
 # ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
+
+def validate_tool(tool_path: str, exec_name: str) -> dict[str, Any]:
+    """
+    Run `<tool> --version` (or `-V` fallback) to confirm the tool actually works.
+    Returns a dict with keys: ok (bool), version (str), error (str|None).
+    """
+    for flag in ["--version", "-V", "-version", "version"]:
+        try:
+            result = subprocess.run(
+                [tool_path, flag],
+                capture_output=True, text=True, timeout=10,
+            )
+            output = (result.stdout + result.stderr).strip()
+            if result.returncode == 0 or output:
+                version = output.splitlines()[0] if output else "unknown"
+                return {"ok": True, "version": version, "error": None}
+        except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
+            continue
+    return {"ok": False, "version": "", "error": "no version output"}
+
+
+def validate_discovered(
+    discovered: dict[str, dict[str, list[dict]]],
+) -> dict[str, dict[str, dict[str, Any]]]:
+    """
+    Validate every discovered tool.
+    Returns { language -> { role -> { exec -> validation_result } } }.
+    """
+    results: dict[str, dict[str, dict[str, Any]]] = {}
+    for lang, roles in discovered.items():
+        results[lang] = {}
+        for role, tools in roles.items():
+            role_results: dict[str, Any] = {}
+            for tool in tools:
+                key = tool["_exec"]
+                role_results[key] = validate_tool(tool["_path"], tool["_exec"])
+            results[lang][role] = role_results
+    return results
+
+
+# ---------------------------------------------------------------------------
 # Settings generation
 # ---------------------------------------------------------------------------
 
 def build_settings(
     discovered: dict[str, dict[str, list[dict]]],
+    validation: dict[str, dict[str, dict[str, Any]]] | None = None,
 ) -> dict[str, Any]:
-    """Build a settings dict from discovered tools (first per role wins)."""
+    """
+    Build a settings dict from discovered tools.
+    Only the first valid tool per role is used; if validation is provided,
+    tools that failed validation are skipped.
+    """
     settings: dict[str, Any] = {}
 
     for lang_key in discovered:
@@ -226,18 +272,27 @@ def build_settings(
             tools = roles.get(role, [])
             if not tools:
                 continue
-            # First found = primary
-            tool = tools[0]
-            tool_path = tool.get("_path", "")
-            raw_settings = tool.get("settings", {})
+
+            chosen = None
+            for tool in tools:
+                if validation:
+                    v = validation.get(lang_key, {}).get(role, {}).get(tool["_exec"])
+                    if v and not v["ok"]:
+                        continue
+                chosen = tool
+                break
+
+            if not chosen:
+                continue
+
+            tool_path = chosen.get("_path", "")
+            raw_settings = chosen.get("settings", {})
             if raw_settings:
                 filled = fill_placeholders(raw_settings, tool_path)
                 if isinstance(filled, dict):
                     settings = deep_merge(settings, filled)
 
-    # Global convenience settings
     settings.setdefault("editor.formatOnSave", True)
-
     return settings
 
 
@@ -321,8 +376,13 @@ def install_extensions(
 # Reporting
 # ---------------------------------------------------------------------------
 
-def print_report(discovered: dict, primary: dict, extensions: list[str]):
-    """Print a human-readable summary of what was discovered."""
+def print_report(
+    discovered: dict,
+    primary: dict,
+    extensions: list[str],
+    validation: dict[str, dict[str, dict[str, Any]]] | None = None,
+):
+    """Print a human-readable summary of what was discovered and validated."""
     print("=" * 70)
     print("  DEVTOOLS-BRIDGE — DISCOVERY REPORT")
     print("=" * 70)
@@ -342,10 +402,20 @@ def print_report(discovered: dict, primary: dict, extensions: list[str]):
             for i, tool in enumerate(tools):
                 marker = "  *" if i == 0 else "   "
                 ext = tool.get("vscodeExtension", "—")
-                print(f"  {marker} {label:20s}  {tool['_exec']:25s}  {tool['_path']}")
+
+                version_str = ""
+                if validation:
+                    v = validation.get(lang_key, {}).get(role, {}).get(tool["_exec"])
+                    if v:
+                        if v["ok"]:
+                            version_str = f"  v:{v['version']}"
+                        else:
+                            version_str = f"  INVALID({v['error']})"
+
+                print(f"  {marker} {label:20s}  {tool['_exec']:25s}  {tool['_path']}{version_str}")
                 if ext and ext != "—":
                     print(f"       {'':20s}  extension: {ext}")
-            # Show missing roles
+
         missing = [ROLE_LABELS[r] for r in ROLE_ORDER if r not in roles]
         if missing:
             print(f"       (not found: {', '.join(missing)})")
@@ -356,7 +426,12 @@ def print_report(discovered: dict, primary: dict, extensions: list[str]):
     print("=" * 70)
 
 
-def write_report_json(path: Path, discovered: dict, extensions: list[str]):
+def write_report_json(
+    path: Path,
+    discovered: dict,
+    extensions: list[str],
+    validation: dict[str, dict[str, dict[str, Any]]] | None = None,
+):
     """Write a machine-readable JSON report."""
     clean: dict[str, Any] = {}
     for lang, roles in discovered.items():
@@ -367,6 +442,8 @@ def write_report_json(path: Path, discovered: dict, extensions: list[str]):
                     "executable": t["_exec"],
                     "path": t["_path"],
                     "extension": t.get("vscodeExtension", ""),
+                    "valid": validation.get(lang, {}).get(role, {}).get(t["_exec"], {}).get("ok") if validation else None,
+                    "version": validation.get(lang, {}).get(role, {}).get(t["_exec"], {}).get("version", "") if validation else "",
                 }
                 for t in tools
             ]
@@ -395,6 +472,7 @@ def main() -> int:
     parser.add_argument("--report", default=None, help="Write JSON report to this path.")
     parser.add_argument("--no-merge", action="store_true", help="Overwrite settings instead of merging.")
     parser.add_argument("--languages", default=None, help="Comma-separated language keys to limit to.")
+    parser.add_argument("--skip-validation", action="store_true", help="Skip tool version validation.")
     args = parser.parse_args()
 
     # Load registry
@@ -414,8 +492,27 @@ def main() -> int:
     discovered, extensions = discover_tools(languages, only=only)
     primary = pick_primary(discovered)
 
+    # Validate
+    validation = None
+    if not args.skip_validation and discovered:
+        print("Validating discovered tools (version checks)...")
+        validation = validate_discovered(discovered)
+        valid_count = sum(
+            1 for lang in validation.values()
+            for role in lang.values()
+            for v in role.values()
+            if v["ok"]
+        )
+        invalid_count = sum(
+            1 for lang in validation.values()
+            for role in lang.values()
+            for v in role.values()
+            if not v["ok"]
+        )
+        print(f"  {valid_count} valid, {invalid_count} invalid/unverifiable")
+
     # Report
-    print_report(discovered, primary, extensions)
+    print_report(discovered, primary, extensions, validation)
 
     if not discovered:
         print("\nNo tools found. Nothing to configure.")
@@ -430,7 +527,7 @@ def main() -> int:
     else:
         print("Editor CLI: not found on PATH (will still write settings)")
 
-    new_settings = build_settings(discovered)
+    new_settings = build_settings(discovered, validation)
     changed = write_settings(
         settings_path, new_settings, merge=not args.no_merge, dry_run=args.dry_run
     )
@@ -456,7 +553,7 @@ def main() -> int:
     # JSON report
     if args.report:
         report_path = Path(args.report)
-        write_report_json(report_path, discovered, extensions)
+        write_report_json(report_path, discovered, extensions, validation)
         print(f"Report written to {report_path}")
 
     return 0

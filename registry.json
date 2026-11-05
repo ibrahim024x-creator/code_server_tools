@@ -32,7 +32,10 @@
             "executables": ["ruff", "ruff-lsp"],
             "vscodeExtension": "charliermarsh.ruff",
             "settings": {
-              "python.languageServer": "Ruff"
+              "[python]": {
+                "editor.defaultFormatter": "charliermarsh.ruff"
+              },
+              "ruff.path": ["{path}"]
             }
           }
         ],
@@ -55,7 +58,10 @@
             "executables": ["ruff"],
             "vscodeExtension": "charliermarsh.ruff",
             "settings": {
-              "python.formatting.provider": "ruff"
+              "[python]": {
+                "editor.defaultFormatter": "charliermarsh.ruff"
+              },
+              "ruff.path": ["{path}"]
             }
           },
           {
@@ -78,7 +84,8 @@
             "executables": ["ruff"],
             "vscodeExtension": "charliermarsh.ruff",
             "settings": {
-              "python.linting.ruffEnabled": true
+              "ruff.enable": true,
+              "ruff.path": ["{path}"]
             }
           },
           {
@@ -956,6 +963,13 @@
         "dap": [],
         "formatter": [
           {
+            "executables": ["sqlfluff"],
+            "vscodeExtension": "dorzey.sqlfluff",
+            "settings": {
+              "sqlfluff.format.executablePath": "{path}"
+            }
+          },
+          {
             "executables": ["sql-formatter", "pg_format", "sqlformat"],
             "vscodeExtension": "aws-scripting-guy.format-sql",
             "settings": {}
@@ -1038,7 +1052,7 @@
   },
 
   "treeSitter": {
-    "note": "Tree-sitter parsers in VS Code/code-server are bundled inside extensions, not standalone executables on PATH. The grammar is selected by the extension, not by a CLI tool.",
+    "note": "Tree-sitter parsers in VS Code/code-server are bundled inside extensions, not standalone executables on PATH. The grammar is selected by the extension, not by a CLI tool. Discovery does not scan for tree-sitter executables; this section is informational only.",
     "extensions": {
       "python": ["nvim-treesitter.python"],
       "javascript": ["nvim-treesitter.javascript"],
