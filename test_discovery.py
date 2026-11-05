@@ -582,6 +582,166 @@ def test_backward_compat_no_versioned():
 # Main
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# launch.json generation
+# ---------------------------------------------------------------------------
+
+def test_build_launch_config_basic():
+    """build_launch_config generates launch.json from DAP tools with launchConfig."""
+    print("\n--- build_launch_config: basic ---")
+
+    discovered = {
+        "python": {
+            "dap": [{
+                "_path": "/usr/bin/debugpy",
+                "_exec": "debugpy",
+                "launchConfig": {
+                    "name": "Python: Current File",
+                    "type": "python",
+                    "request": "launch",
+                    "program": "${file}",
+                },
+            }]
+        },
+        "c_cpp": {
+            "dap": [{
+                "_path": "/usr/bin/gdb",
+                "_exec": "gdb",
+                "launchConfig": {
+                    "name": "C/C++: GDB",
+                    "type": "cppdbg",
+                    "request": "launch",
+                    "miDebuggerPath": "{path}",
+                },
+            }]
+        }
+    }
+
+    result = dt.build_launch_config(discovered)
+    check("result is not None", result is not None)
+    check("has version", result and result.get("version") == "0.2.0")
+    check("2 configurations", result and len(result["configurations"]) == 2)
+    names = [c["name"] for c in result["configurations"]]
+    check("Python config present", "Python: Current File" in names)
+    check("C/C++ config present", "C/C++: GDB" in names)
+
+    cpp_cfg = [c for c in result["configurations"] if c["name"] == "C/C++: GDB"][0]
+    check("miDebuggerPath placeholder filled", cpp_cfg["miDebuggerPath"] == "/usr/bin/gdb",
+          f"got {cpp_cfg.get('miDebuggerPath')}")
+
+
+def test_build_launch_config_no_dap():
+    """build_launch_config returns None when no DAP tools found."""
+    print("\n--- build_launch_config: no DAP ---")
+
+    discovered = {
+        "python": {
+            "lsp": [{"_path": "/usr/bin/pylsp", "_exec": "pylsp"}]
+        }
+    }
+    result = dt.build_launch_config(discovered)
+    check("returns None when no DAP", result is None)
+
+
+def test_build_launch_config_no_template():
+    """build_launch_config skips DAP tools without launchConfig."""
+    print("\n--- build_launch_config: no template ---")
+
+    discovered = {
+        "python": {
+            "dap": [{
+                "_path": "/usr/bin/debugpy",
+                "_exec": "debugpy",
+            }]
+        }
+    }
+    result = dt.build_launch_config(discovered)
+    check("returns None when no launchConfig", result is None)
+
+
+def test_build_launch_config_validation_skip():
+    """build_launch_config skips tools that failed validation."""
+    print("\n--- build_launch_config: validation skip ---")
+
+    discovered = {
+        "c_cpp": {
+            "dap": [
+                {"_path": "/bad/gdb", "_exec": "gdb", "launchConfig": {"name": "Bad", "type": "cppdbg", "request": "launch"}},
+                {"_path": "/good/codelldb", "_exec": "codelldb", "launchConfig": {"name": "Good", "type": "lldb", "request": "launch"}},
+            ]
+        }
+    }
+    validation = {
+        "c_cpp": {
+            "dap": {
+                "gdb": {"ok": False, "version": "", "error": "broken"},
+                "codelldb": {"ok": True, "version": "1.0", "error": None},
+            }
+        }
+    }
+    result = dt.build_launch_config(discovered, validation)
+    check("result exists", result is not None)
+    check("only 1 config (valid one)", result and len(result["configurations"]) == 1)
+    check("config is Good (codelldb)", result and result["configurations"][0]["name"] == "Good")
+
+
+def test_build_launch_config_dedup_names():
+    """build_launch_config deduplicates configurations by name."""
+    print("\n--- build_launch_config: dedup names ---")
+
+    discovered = {
+        "c_cpp": {
+            "dap": [
+                {"_path": "/a/gdb", "_exec": "gdb", "launchConfig": {"name": "C/C++: GDB", "type": "cppdbg", "request": "launch"}},
+                {"_path": "/b/gdb", "_exec": "gdb-14", "launchConfig": {"name": "C/C++: GDB", "type": "cppdbg", "request": "launch"}},
+            ]
+        }
+    }
+    result = dt.build_launch_config(discovered)
+    check("only 1 config despite same name", result and len(result["configurations"]) == 1)
+
+
+def test_write_launch_config_merge():
+    """write_launch_config merges with existing launch.json by name."""
+    print("\n--- write_launch_config: merge ---")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        launch_path = Path(tmp) / "launch.json"
+        existing = {"version": "0.2.0", "configurations": [{"name": "Existing", "type": "go"}]}
+        with open(launch_path, "w") as f:
+            json.dump(existing, f)
+
+        new_data = {"version": "0.2.0", "configurations": [{"name": "New", "type": "python"}]}
+        changed = dt.write_launch_config(launch_path, new_data, dry_run=False)
+
+        check("changed is True", changed is True)
+        with open(launch_path) as f:
+            merged = json.load(f)
+        names = [c["name"] for c in merged["configurations"]]
+        check("existing config preserved", "Existing" in names)
+        check("new config added", "New" in names)
+        check("total 2 configs", len(merged["configurations"]) == 2)
+
+
+def test_write_launch_config_no_duplicate():
+    """write_launch_config does not add duplicate names."""
+    print("\n--- write_launch_config: no duplicate ---")
+
+    with tempfile.TemporaryDirectory() as tmp:
+        launch_path = Path(tmp) / "launch.json"
+        existing = {"version": "0.2.0", "configurations": [{"name": "Python: Current File", "type": "python"}]}
+        with open(launch_path, "w") as f:
+            json.dump(existing, f)
+
+        new_data = {"version": "0.2.0", "configurations": [{"name": "Python: Current File", "type": "python"}]}
+        changed = dt.write_launch_config(launch_path, new_data, dry_run=False)
+
+        check("changed is False (dup)", changed is False)
+        with open(launch_path) as f:
+            data = json.load(f)
+        check("still 1 config", len(data["configurations"]) == 1)
+
+
 def main():
     print("=" * 60)
     print("  DEVTOOLS-BRIDGE — TEST SUITE")
@@ -603,6 +763,13 @@ def main():
     test_extract_version_from_output()
     test_backward_compat_find_on_path()
     test_backward_compat_no_versioned()
+    test_build_launch_config_basic()
+    test_build_launch_config_no_dap()
+    test_build_launch_config_no_template()
+    test_build_launch_config_validation_skip()
+    test_build_launch_config_dedup_names()
+    test_write_launch_config_merge()
+    test_write_launch_config_no_duplicate()
 
     print("\n" + "=" * 60)
     print(f"  RESULTS: {PASS} passed, {FAIL} failed")

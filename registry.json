@@ -31,7 +31,15 @@
           {
             "executables": ["debugpy"],
             "vscodeExtension": "ms-python.python",
-            "adapter": "python"
+            "adapter": "python",
+            "launchConfig": {
+              "name": "Python: Current File",
+              "type": "python",
+              "request": "launch",
+              "program": "${file}",
+              "console": "integratedTerminal",
+              "justMyCode": true
+            }
           }
         ],
         "formatter": [
@@ -144,7 +152,14 @@
           {
             "executables": ["node"],
             "vscodeExtension": "ms-vscode.js-debug",
-            "adapter": "node"
+            "adapter": "node",
+            "launchConfig": {
+              "name": "Node: Current File",
+              "type": "node",
+              "request": "launch",
+              "program": "${file}",
+              "console": "integratedTerminal"
+            }
           }
         ],
         "formatter": [
@@ -233,7 +248,14 @@
           {
             "executables": ["dlv", "delve"],
             "vscodeExtension": "golang.go",
-            "adapter": "go"
+            "adapter": "go",
+            "launchConfig": {
+              "name": "Go: Launch Package",
+              "type": "go",
+              "request": "launch",
+              "mode": "auto",
+              "program": "${fileDirname}"
+            }
           }
         ],
         "formatter": [
@@ -282,7 +304,14 @@
           {
             "executables": ["codelldb", "rust-lldb"],
             "vscodeExtension": "vadimcn.vscode-lldb",
-            "adapter": "lldb"
+            "adapter": "lldb",
+            "launchConfig": {
+              "name": "Rust: Debug",
+              "type": "lldb",
+              "request": "launch",
+              "program": "${workspaceFolder}/target/debug/${workspaceFolderBasename}",
+              "cwd": "${workspaceFolder}"
+            }
           }
         ],
         "formatter": [
@@ -340,12 +369,37 @@
           {
             "executables": ["gdb"],
             "vscodeExtension": "ms-vscode.cpptools",
-            "adapter": "cppdbg"
+            "adapter": "cppdbg",
+            "launchConfig": {
+              "name": "C/C++: GDB",
+              "type": "cppdbg",
+              "request": "launch",
+              "program": "${workspaceFolder}/a.out",
+              "args": [],
+              "cwd": "${workspaceFolder}",
+              "MIMode": "gdb",
+              "miDebuggerPath": "{path}",
+              "setupCommands": [
+                {
+                  "description": "Enable pretty-printing for gdb",
+                  "text": "-enable-pretty-printing",
+                  "ignoreFailures": true
+                }
+              ]
+            }
           },
           {
             "executables": ["codelldb", "lldb"],
             "vscodeExtension": "vadimcn.vscode-lldb",
-            "adapter": "lldb"
+            "adapter": "lldb",
+            "launchConfig": {
+              "name": "C/C++: LLDB",
+              "type": "lldb",
+              "request": "launch",
+              "program": "${workspaceFolder}/a.out",
+              "args": [],
+              "cwd": "${workspaceFolder}"
+            }
           }
         ],
         "formatter": [
@@ -405,7 +459,13 @@
           {
             "executables": ["java-debug", "vscode-java-debug"],
             "vscodeExtension": "vscjava.vscode-java-debug",
-            "adapter": "java"
+            "adapter": "java",
+            "launchConfig": {
+              "name": "Java: Launch Current File",
+              "type": "java",
+              "request": "launch",
+              "mainClass": "${file}"
+            }
           }
         ],
         "formatter": [
@@ -467,7 +527,14 @@
           {
             "executables": ["rdbg", "rdebug-ide"],
             "vscodeExtension": "KoichiSasada.vscode-rdbg",
-            "adapter": "ruby"
+            "adapter": "ruby",
+            "launchConfig": {
+              "name": "Ruby: Debug Current File",
+              "type": "rdbg",
+              "request": "launch",
+              "script": "${file}",
+              "cwd": "${workspaceFolder}"
+            }
           }
         ],
         "formatter": [
@@ -536,7 +603,13 @@
           {
             "executables": ["php"],
             "vscodeExtension": "xdebug.php-debug",
-            "adapter": "php"
+            "adapter": "php",
+            "launchConfig": {
+              "name": "PHP: Listen for Xdebug",
+              "type": "php",
+              "request": "launch",
+              "port": 9003
+            }
           }
         ],
         "formatter": [
@@ -612,7 +685,15 @@
           {
             "executables": ["netcoredbg", "vsdbg"],
             "vscodeExtension": "ms-dotnettools.csharp",
-            "adapter": "coreclr"
+            "adapter": "coreclr",
+            "launchConfig": {
+              "name": ".NET: Launch",
+              "type": "coreclr",
+              "request": "launch",
+              "program": "${workspaceFolder}/bin/Debug/<target-framework>/<project-name.dll>",
+              "cwd": "${workspaceFolder}",
+              "console": "internalConsole"
+            }
           }
         ],
         "formatter": [
@@ -708,7 +789,14 @@
           {
             "executables": ["bashdb"],
             "vscodeExtension": "rogalmic.bash-debug",
-            "adapter": "bashdb"
+            "adapter": "bashdb",
+            "launchConfig": {
+              "name": "Bash: Debug Current File",
+              "type": "bashdb",
+              "request": "launch",
+              "program": "${file}",
+              "cwd": "${fileDirname}"
+            }
           }
         ],
         "formatter": [
@@ -762,7 +850,14 @@
           {
             "executables": ["lua-debug", "local-lua-debugger"],
             "vscodeExtension": "actboy168.lua-debug",
-            "adapter": "lua"
+            "adapter": "lua",
+            "launchConfig": {
+              "name": "Lua: Debug Current File",
+              "type": "lua",
+              "request": "launch",
+              "program": "${file}",
+              "cwd": "${fileDirname}"
+            }
           }
         ],
         "formatter": [
@@ -818,7 +913,13 @@
           {
             "executables": ["dart", "flutter"],
             "vscodeExtension": "Dart-Code.dart-code",
-            "adapter": "dart"
+            "adapter": "dart",
+            "launchConfig": {
+              "name": "Dart: Launch",
+              "type": "dart",
+              "request": "launch",
+              "program": "${workspaceFolder}/lib/main.dart"
+            }
           }
         ],
         "formatter": [
@@ -865,7 +966,13 @@
           {
             "executables": ["kotlin-debug-adapter", "kdebug"],
             "vscodeExtension": "fwcd.kotlin",
-            "adapter": "kotlin"
+            "adapter": "kotlin",
+            "launchConfig": {
+              "name": "Kotlin: Debug Current File",
+              "type": "kotlin",
+              "request": "launch",
+              "program": "${file}"
+            }
           }
         ],
         "formatter": [

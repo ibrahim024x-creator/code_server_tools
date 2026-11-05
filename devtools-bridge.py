@@ -487,6 +487,103 @@ def write_settings(
 
 
 # ---------------------------------------------------------------------------
+# launch.json generation
+# ---------------------------------------------------------------------------
+
+def build_launch_config(
+    discovered: dict[str, dict[str, list[dict]]],
+    validation: dict[str, dict[str, dict[str, Any]]] | None = None,
+) -> dict[str, Any] | None:
+    """
+    Build a launch.json structure from discovered DAP tools that have
+    launchConfig templates in the registry. Only the first valid tool
+    per language is used.
+    """
+    configurations: list[dict[str, Any]] = []
+    seen_names: set[str] = set()
+
+    for lang_key in discovered:
+        roles = discovered[lang_key]
+        dap_tools = roles.get("dap", [])
+        if not dap_tools:
+            continue
+
+        for tool in dap_tools:
+            if validation:
+                v = validation.get(lang_key, {}).get("dap", {}).get(tool["_exec"])
+                if v and not v["ok"]:
+                    continue
+
+            launch_template = tool.get("launchConfig")
+            if not launch_template:
+                continue
+
+            filled = fill_placeholders(launch_template, tool.get("_path", ""))
+            if not isinstance(filled, dict):
+                continue
+
+            name = filled.get("name", f"{lang_key}: {tool['_exec']}")
+            if name in seen_names:
+                continue
+            seen_names.add(name)
+            configurations.append(filled)
+            break
+
+    if not configurations:
+        return None
+
+    return {
+        "version": "0.2.0",
+        "configurations": configurations,
+    }
+
+
+def write_launch_config(
+    target: Path, launch_data: dict, dry_run: bool
+) -> bool:
+    """Write launch.json. Merges with existing configurations by name."""
+    existing: dict[str, Any] = {}
+    if target.exists():
+        try:
+            with open(target, "r", encoding="utf-8") as f:
+                existing = json.load(f)
+            if not isinstance(existing, dict):
+                existing = {}
+        except (json.JSONDecodeError, OSError):
+            existing = {}
+
+    existing_configs: list[dict] = existing.get("configurations", [])
+    existing_names = {c.get("name") for c in existing_configs if isinstance(c, dict)}
+
+    new_configs = launch_data.get("configurations", [])
+    merged = [c for c in existing_configs if isinstance(c, dict)]
+    added = False
+    for cfg in new_configs:
+        if cfg.get("name") not in existing_names:
+            merged.append(cfg)
+            added = True
+
+    final = {
+        "version": existing.get("version", "0.2.0"),
+        "configurations": merged,
+    }
+
+    if not added and existing_configs:
+        return False
+
+    if dry_run:
+        print(f"\n[DRY-RUN] Would write launch.json to: {target}")
+        print(json.dumps(final, indent=2, ensure_ascii=False))
+        return True
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    with open(target, "w", encoding="utf-8") as f:
+        json.dump(final, f, indent=2, ensure_ascii=False)
+        f.write("\n")
+    return True
+
+
+# ---------------------------------------------------------------------------
 # Extension installation
 # ---------------------------------------------------------------------------
 
@@ -636,6 +733,8 @@ def main() -> int:
     parser.add_argument("--no-merge", action="store_true", help="Overwrite settings instead of merging.")
     parser.add_argument("--languages", default=None, help="Comma-separated language keys to limit to.")
     parser.add_argument("--skip-validation", action="store_true", help="Skip tool version validation.")
+    parser.add_argument("--launch-json", default=None, help="Path to launch.json (default: alongside settings.json).")
+    parser.add_argument("--no-launch-json", action="store_true", help="Do not generate launch.json.")
     args = parser.parse_args()
 
     # Load registry
@@ -701,6 +800,22 @@ def main() -> int:
             print(f"Settings written to {settings_path}")
     else:
         print("Settings already up to date.")
+
+    # launch.json generation
+    if not args.no_launch_json:
+        launch_data = build_launch_config(discovered, validation)
+        if launch_data:
+            launch_path = Path(args.launch_json) if args.launch_json else settings_path.parent / "launch.json"
+            launch_changed = write_launch_config(launch_path, launch_data, args.dry_run)
+            if launch_changed:
+                if args.dry_run:
+                    print("[DRY-RUN] launch.json not written.")
+                else:
+                    print(f"launch.json written to {launch_path}")
+            else:
+                print("launch.json already up to date.")
+        else:
+            print("No debug adapters with launch templates found. Skipping launch.json.")
 
     # Extensions
     if args.install_extensions and cli:
