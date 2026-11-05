@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-devtools-bridge — auto-discover installed dev tools on PATH, validate them,
-and wire them into VS Code / code-server settings.json + install matching extensions.
+devtools-bridge — auto-discover installed dev tools on PATH (including
+version-suffixed variants), validate them, and wire them into VS Code /
+code-server settings.json + install matching extensions.
 
 Usage:
   python3 devtools-bridge.py [--dry-run] [--settings PATH] [--registry PATH] [--install-extensions] [--report PATH]
@@ -54,8 +55,67 @@ ROLE_LABELS = {
 
 
 # ---------------------------------------------------------------------------
-# Helpers
+# Version parsing
 # ---------------------------------------------------------------------------
+
+def parse_version_suffix(filename: str, base_name: str) -> tuple[int, ...] | None:
+    """
+    Extract a version tuple from a filename relative to a base name.
+
+    Matches two patterns:
+      - Dash-suffixed:  clangd-23  → (23,)      clang-format-19 → (19,)
+      - Direct-suffixed: python3.13 → (3, 13)   python3 → (3,)
+
+    Returns None if the filename is the base name itself (no version suffix)
+    or if no version pattern is found.
+    """
+    if filename == base_name:
+        return None
+
+    # Dash-suffixed: base-N or base-N.M.P
+    dash_pattern = rf"^{re.escape(base_name)}-(\d[\d.]*)$"
+    m = re.match(dash_pattern, filename)
+    if m:
+        return _tuple_from_version_str(m.group(1))
+
+    # Direct-suffixed: baseN or baseN.M  (only when base ends with a non-digit)
+    if base_name and base_name[-1].isalpha():
+        direct_pattern = rf"^{re.escape(base_name)}(\d[\d.]*)$"
+        m = re.match(direct_pattern, filename)
+        if m:
+            return _tuple_from_version_str(m.group(1))
+
+    return None
+
+
+def _tuple_from_version_str(s: str) -> tuple[int, ...]:
+    """Convert '23' or '3.13.5' to (23,) or (3, 13, 5)."""
+    parts = []
+    for chunk in s.split("."):
+        chunk = chunk.strip()
+        if chunk.isdigit():
+            parts.append(int(chunk))
+        else:
+            break
+    return tuple(parts) if parts else (0,)
+
+
+def version_str(v: tuple[int, ...] | None) -> str:
+    """Human-readable version string: (23,) -> '23', (3,13) -> '3.13', None -> ''."""
+    if v is None:
+        return ""
+    return ".".join(str(n) for n in v)
+
+
+# ---------------------------------------------------------------------------
+# PATH scanning
+# ---------------------------------------------------------------------------
+
+def _path_dirs() -> list[Path]:
+    """Return list of directories from PATH env var."""
+    env_path = os.environ.get("PATH", "")
+    return [Path(p) for p in env_path.split(os.pathsep) if p]
+
 
 def find_on_path(names: list[str]) -> str | None:
     """Return the full path of the first executable found on PATH, or None."""
@@ -65,6 +125,81 @@ def find_on_path(names: list[str]) -> str | None:
             return path
     return None
 
+
+def find_all_versions_on_path(names: list[str]) -> list[dict[str, Any]]:
+    """
+    Find all executables matching the given names on PATH, including
+    version-suffixed variants (e.g. clangd-19, clangd-20, python3.13).
+
+    Returns a list of dicts sorted by version descending (highest first),
+    with unversioned exact matches treated as highest priority:
+
+        {"path": "/usr/bin/clangd-20", "exec": "clangd-20", "version": (20,)}
+
+    Unversioned exact matches get version=None and sort first.
+    Deduplicates by resolved path and by version (one entry per version).
+    """
+    seen_paths: set[str] = set()
+    seen_versions: set[tuple[int, ...]] = set()
+    results: list[dict[str, Any]] = []
+
+    # Pass 1: exact matches for all names first (ensures python3 is
+    # registered as unversioned before python's scan claims it as versioned)
+    for base_name in names:
+        exact = shutil.which(base_name)
+        if exact:
+            real = str(Path(exact).resolve())
+            if real not in seen_paths:
+                seen_paths.add(real)
+                results.append({
+                    "path": exact,
+                    "exec": Path(exact).name,
+                    "version": None,
+                })
+
+    # Pass 2: scan PATH dirs for version-suffixed variants
+    for base_name in names:
+        for d in _path_dirs():
+            if not d.is_dir():
+                continue
+            try:
+                entries = os.listdir(d)
+            except (PermissionError, OSError):
+                continue
+            for entry in entries:
+                ver = parse_version_suffix(entry, base_name)
+                if ver is None:
+                    continue
+                full = d / entry
+                if not full.is_file():
+                    continue
+                if not os.access(full, os.X_OK):
+                    continue
+                real = str(full.resolve())
+                if real in seen_paths or ver in seen_versions:
+                    continue
+                seen_paths.add(real)
+                seen_versions.add(ver)
+                results.append({
+                    "path": str(full),
+                    "exec": entry,
+                    "version": ver,
+                })
+
+    # Sort: unversioned (None) first, then by version descending
+    def _sort_key(item: dict[str, Any]):
+        v = item["version"]
+        if v is None:
+            return (1, ())  # unversioned = highest priority
+        return (0, v)
+
+    results.sort(key=_sort_key, reverse=True)
+    return results
+
+
+# ---------------------------------------------------------------------------
+# Editor detection
+# ---------------------------------------------------------------------------
 
 def detect_editor_cli() -> str | None:
     """Find the code-server / code CLI available on PATH."""
@@ -78,25 +213,25 @@ def detect_settings_path(cli: str | None, explicit: str | None) -> Path:
 
     home = Path.home()
 
-    # code-server default
     cs_settings = home / ".local" / "share" / "code-server" / "User" / "settings.json"
     if cs_settings.parent.exists():
         return cs_settings
 
-    # VS Code default
     vs_settings = home / ".config" / "Code" / "User" / "settings.json"
     if vs_settings.parent.exists():
         return vs_settings
 
-    # VSCodium
     vsc_settings = home / ".config" / "VSCodium" / "User" / "settings.json"
     if vsc_settings.parent.exists():
         return vsc_settings
 
-    # Fallback: .vscode in cwd
     local = Path.cwd() / ".vscode" / "settings.json"
     return local
 
+
+# ---------------------------------------------------------------------------
+# Registry loading
+# ---------------------------------------------------------------------------
 
 def load_registry(path: Path) -> dict[str, Any]:
     if not path.exists():
@@ -106,6 +241,10 @@ def load_registry(path: Path) -> dict[str, Any]:
         data = json.load(f)
     return data["languages"]
 
+
+# ---------------------------------------------------------------------------
+# Placeholder filling
+# ---------------------------------------------------------------------------
 
 def fill_placeholders(value: Any, tool_path: str) -> Any:
     """Replace {path}, {basename}, {dir}, {env:VAR} placeholders in settings."""
@@ -147,10 +286,11 @@ def discover_tools(
     languages: dict[str, Any], only: list[str] | None = None
 ) -> tuple[dict[str, dict[str, list[dict]]], list[str]]:
     """
-    Scan PATH for every tool listed in the registry.
+    Scan PATH for every tool listed in the registry, including version-suffixed
+    variants. Returns discovered tools sorted by version (highest first).
 
     Returns:
-      discovered: { language -> { role -> [ {tool entry + _path} ] } }
+      discovered: { language -> { role -> [ {tool entry + _path, _exec, _version} ] } }
       extensions:  flat list of unique extension IDs to install
     """
     discovered: dict[str, dict[str, list[dict]]] = {}
@@ -169,24 +309,31 @@ def discover_tools(
         for role in ROLE_ORDER:
             tool_list = tools_by_role.get(role, [])
             found_for_role: list[dict] = []
+            seen_paths_for_role: set[str] = set()
 
             for tool in tool_list:
                 execs = tool.get("executables", [])
                 if not execs:
                     continue
-                path = find_on_path(execs)
-                if not path:
-                    continue
 
-                entry = dict(tool)
-                entry["_path"] = path
-                entry["_exec"] = Path(path).name
-                found_for_role.append(entry)
+                all_matches = find_all_versions_on_path(execs)
 
-                ext = tool.get("vscodeExtension", "").strip()
-                if ext and ext not in extensions_set:
-                    extensions_set.add(ext)
-                    extensions_seen.append(ext)
+                for match in all_matches:
+                    real = str(Path(match["path"]).resolve())
+                    if real in seen_paths_for_role:
+                        continue
+                    seen_paths_for_role.add(real)
+
+                    entry = dict(tool)
+                    entry["_path"] = match["path"]
+                    entry["_exec"] = match["exec"]
+                    entry["_version"] = match["version"]
+                    found_for_role.append(entry)
+
+                    ext = tool.get("vscodeExtension", "").strip()
+                    if ext and ext not in extensions_set:
+                        extensions_set.add(ext)
+                        extensions_seen.append(ext)
 
             if found_for_role:
                 lang_result[role] = found_for_role
@@ -198,7 +345,7 @@ def discover_tools(
 
 
 def pick_primary(discovered: dict) -> dict[str, dict[str, dict | None]]:
-    """Pick the first found tool per role per language (the 'primary' choice)."""
+    """Pick the first (highest-version) tool per role per language."""
     primary: dict[str, dict[str, dict | None]] = {}
     for lang, roles in discovered.items():
         primary[lang] = {}
@@ -212,10 +359,25 @@ def pick_primary(discovered: dict) -> dict[str, dict[str, dict | None]]:
 # Validation
 # ---------------------------------------------------------------------------
 
+_VERSION_NUM_RE = re.compile(r"(\d+(?:\.\d+)+|\d+)")
+
+
+def extract_version_from_output(output: str) -> str:
+    """
+    Extract a version string from `--version` output.
+    Looks for patterns like '14.2.0', '22.23.4', '3.13.5', 'v22.23.4'.
+    """
+    for line in output.splitlines():
+        m = _VERSION_NUM_RE.search(line)
+        if m:
+            return m.group(1)
+    return ""
+
+
 def validate_tool(tool_path: str, exec_name: str) -> dict[str, Any]:
     """
-    Run `<tool> --version` (or `-V` fallback) to confirm the tool actually works.
-    Returns a dict with keys: ok (bool), version (str), error (str|None).
+    Run `<tool> --version` (or fallbacks) to confirm the tool works.
+    Returns { ok, version, error }.
     """
     for flag in ["--version", "-V", "-version", "version"]:
         try:
@@ -225,8 +387,8 @@ def validate_tool(tool_path: str, exec_name: str) -> dict[str, Any]:
             )
             output = (result.stdout + result.stderr).strip()
             if result.returncode == 0 or output:
-                version = output.splitlines()[0] if output else "unknown"
-                return {"ok": True, "version": version, "error": None}
+                ver = extract_version_from_output(output) if output else ""
+                return {"ok": True, "version": ver or "unknown", "error": None}
         except (subprocess.TimeoutExpired, FileNotFoundError, OSError):
             continue
     return {"ok": False, "version": "", "error": "no version output"}
@@ -235,10 +397,7 @@ def validate_tool(tool_path: str, exec_name: str) -> dict[str, Any]:
 def validate_discovered(
     discovered: dict[str, dict[str, list[dict]]],
 ) -> dict[str, dict[str, dict[str, Any]]]:
-    """
-    Validate every discovered tool.
-    Returns { language -> { role -> { exec -> validation_result } } }.
-    """
+    """Validate every discovered tool. Returns nested dict of results."""
     results: dict[str, dict[str, dict[str, Any]]] = {}
     for lang, roles in discovered.items():
         results[lang] = {}
@@ -261,8 +420,8 @@ def build_settings(
 ) -> dict[str, Any]:
     """
     Build a settings dict from discovered tools.
-    Only the first valid tool per role is used; if validation is provided,
-    tools that failed validation are skipped.
+    Uses the first valid tool per role (highest version, since results are
+    pre-sorted). If validation is provided, tools that failed are skipped.
     """
     settings: dict[str, Any] = {}
 
@@ -402,17 +561,20 @@ def print_report(
             for i, tool in enumerate(tools):
                 marker = "  *" if i == 0 else "   "
                 ext = tool.get("vscodeExtension", "—")
+                ver_suffix = tool.get("_version")
+                ver_label = version_str(ver_suffix)
+                ver_display = f"  suffix:{ver_label}" if ver_label else ""
 
-                version_str = ""
+                version_str_display = ""
                 if validation:
                     v = validation.get(lang_key, {}).get(role, {}).get(tool["_exec"])
                     if v:
                         if v["ok"]:
-                            version_str = f"  v:{v['version']}"
+                            version_str_display = f"  v:{v['version']}"
                         else:
-                            version_str = f"  INVALID({v['error']})"
+                            version_str_display = f"  INVALID({v['error']})"
 
-                print(f"  {marker} {label:20s}  {tool['_exec']:25s}  {tool['_path']}{version_str}")
+                print(f"  {marker} {label:20s}  {tool['_exec']:25s}  {tool['_path']}{ver_display}{version_str_display}")
                 if ext and ext != "—":
                     print(f"       {'':20s}  extension: {ext}")
 
@@ -441,6 +603,7 @@ def write_report_json(
                 {
                     "executable": t["_exec"],
                     "path": t["_path"],
+                    "versionSuffix": version_str(t.get("_version")),
                     "extension": t.get("vscodeExtension", ""),
                     "valid": validation.get(lang, {}).get(role, {}).get(t["_exec"], {}).get("ok") if validation else None,
                     "version": validation.get(lang, {}).get(role, {}).get(t["_exec"], {}).get("version", "") if validation else "",
@@ -488,7 +651,7 @@ def main() -> int:
             print(f"WARN: unknown language(s): {', '.join(unknown)}", file=sys.stderr)
 
     # Discover
-    print("Scanning PATH for installed development tools...")
+    print("Scanning PATH for installed development tools (incl. versioned variants)...")
     discovered, extensions = discover_tools(languages, only=only)
     primary = pick_primary(discovered)
 
