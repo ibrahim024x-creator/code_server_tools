@@ -284,7 +284,7 @@ def test_cpp_clangd_disables_cpptools_intellisense():
 
 
 def test_cpp_cppcheck_extension():
-    """cppcheck should not use CodeQL extension."""
+    """cppcheck should use the official CppcheckSolutionsAB extension."""
     print("\n--- C/C++: cppcheck extension ---")
     cpp = languages.get("c_cpp", {})
     linters = cpp.get("tools", {}).get("linter", [])
@@ -292,6 +292,7 @@ def test_cpp_cppcheck_extension():
         if "cppcheck" in tool.get("executables", []):
             ext = tool.get("vscodeExtension", "")
             check(f"cppcheck extension is not github.vscode-codeql", ext != "github.vscode-codeql", f"got {ext}")
+            check(f"cppcheck extension is CppcheckSolutionsAB.cppcheck-official", ext == "CppcheckSolutionsAB.cppcheck-official", f"got {ext}")
 
 
 def test_cpp_gdb_no_settings():

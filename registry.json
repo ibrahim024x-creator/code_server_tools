@@ -422,7 +422,7 @@
           },
           {
             "executables": ["cppcheck"],
-            "vscodeExtension": "MS-CEINTUL.vscode-cppcheck",
+            "vscodeExtension": "CppcheckSolutionsAB.cppcheck-official",
             "settings": {
               "cppcheck.executable": "{path}"
             }
