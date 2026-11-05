@@ -59,6 +59,8 @@ FAKE_EXTENSIONS = {
     "nvim-treesitter.javascript",
     "vscodevim.vim",  # Was incorrectly used for vtsls
     "github.vscode-codeql",  # Was incorrectly used for cppcheck
+    "ms-vscode.node-extension-pack",  # Does not exist on Marketplace
+    "MS-CEINTUL.vscode-cppcheck",  # Does not exist on Marketplace
 }
 
 # python.languageServer valid values (from official docs)

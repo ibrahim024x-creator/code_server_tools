@@ -213,7 +213,7 @@
           },
           {
             "executables": ["node", "nodejs"],
-            "vscodeExtension": "ms-vscode.node-extension-pack",
+            "vscodeExtension": "ms-vscode.js-debug",
             "settings": {}
           },
           {
