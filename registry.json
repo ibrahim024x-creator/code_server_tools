@@ -1,14 +1,14 @@
 {
-  "$schema": "tool discovery registry — maps executable names to language, role, and vscode settings",
+  "_description": "Tool discovery registry — maps executable names to language, role, VS Code extension, and settings. Used by devtools-bridge.py.",
   "languages": {
     "python": {
       "extensions": [".py", ".pyi", ".pyw"],
       "filetypes": ["python"],
-      "languageId": "python",
+      "languageId": ["python"],
       "tools": {
         "lsp": [
           {
-            "executables": ["pylsp", "python-lsp-server"],
+            "executables": ["pylsp"],
             "vscodeExtension": "ms-python.python",
             "settings": {
               "python.languageServer": "Pylsp"
@@ -16,10 +16,8 @@
           },
           {
             "executables": ["pyright", "pyright-langserver"],
-            "vscodeExtension": "ms-python.python",
-            "settings": {
-              "python.languageServer": "Pylance"
-            }
+            "vscodeExtension": "ms-pyright.pyright",
+            "settings": {}
           },
           {
             "executables": ["jedi-language-server"],
@@ -27,33 +25,16 @@
             "settings": {
               "python.languageServer": "Jedi"
             }
-          },
-          {
-            "executables": ["ruff", "ruff-lsp"],
-            "vscodeExtension": "charliermarsh.ruff",
-            "settings": {
-              "[python]": {
-                "editor.defaultFormatter": "charliermarsh.ruff"
-              },
-              "ruff.path": ["{path}"]
-            }
           }
         ],
         "dap": [
           {
-            "executables": ["debugpy", "python-debugpy"],
+            "executables": ["debugpy"],
             "vscodeExtension": "ms-python.python",
             "adapter": "python"
           }
         ],
         "formatter": [
-          {
-            "executables": ["black"],
-            "vscodeExtension": "ms-python.black-formatter",
-            "settings": {
-              "python.formatting.provider": "black"
-            }
-          },
           {
             "executables": ["ruff"],
             "vscodeExtension": "charliermarsh.ruff",
@@ -65,17 +46,33 @@
             }
           },
           {
+            "executables": ["black"],
+            "vscodeExtension": "ms-python.vscode-black-formatter",
+            "settings": {
+              "[python]": {
+                "editor.defaultFormatter": "ms-python.vscode-black-formatter"
+              },
+              "black-formatter.path": "{path}"
+            }
+          },
+          {
             "executables": ["autopep8"],
             "vscodeExtension": "ms-python.autopep8",
             "settings": {
-              "python.formatting.provider": "autopep8"
+              "[python]": {
+                "editor.defaultFormatter": "ms-python.autopep8"
+              },
+              "autopep8.path": "{path}"
             }
           },
           {
             "executables": ["yapf"],
-            "vscodeExtension": "ms-python.python",
+            "vscodeExtension": "eeyore.yapf",
             "settings": {
-              "python.formatting.provider": "yapf"
+              "[python]": {
+                "editor.defaultFormatter": "eeyore.yapf"
+              },
+              "yapf.path": "{path}"
             }
           }
         ],
@@ -92,25 +89,24 @@
             "executables": ["flake8"],
             "vscodeExtension": "ms-python.flake8",
             "settings": {
-              "python.linting.flake8Enabled": true
+              "flake8.path": "{path}"
             }
           },
           {
             "executables": ["pylint"],
             "vscodeExtension": "ms-python.pylint",
             "settings": {
-              "python.linting.pylintEnabled": true
+              "pylint.path": "{path}"
             }
           },
           {
             "executables": ["mypy"],
             "vscodeExtension": "ms-python.mypy-type-checker",
             "settings": {
-              "python.linting.mypyEnabled": true
+              "mypy-type-checker.path": "{path}"
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["python3", "python"],
@@ -126,7 +122,7 @@
     "javascript_typescript": {
       "extensions": [".js", ".jsx", ".ts", ".tsx", ".mjs", ".cjs"],
       "filetypes": ["javascript", "typescript", "javascriptreact", "typescriptreact"],
-      "languageId": "typescript",
+      "languageId": ["javascript", "typescript"],
       "tools": {
         "lsp": [
           {
@@ -138,8 +134,10 @@
           },
           {
             "executables": ["vtsls"],
-            "vscodeExtension": "vscodevim.vim",
-            "settings": {}
+            "vscodeExtension": "yiontech.vtsls",
+            "settings": {
+              "vtsls.server.path": "{path}"
+            }
           }
         ],
         "dap": [
@@ -178,8 +176,7 @@
             "executables": ["eslint", "eslint_d"],
             "vscodeExtension": "dbaeumer.vscode-eslint",
             "settings": {
-              "eslint.enable": true,
-              "eslint.execArgv": []
+              "eslint.enable": true
             }
           },
           {
@@ -193,7 +190,6 @@
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["tsc", "typescript"],
@@ -222,7 +218,7 @@
     "go": {
       "extensions": [".go"],
       "filetypes": ["go"],
-      "languageId": "go",
+      "languageId": ["go"],
       "tools": {
         "lsp": [
           {
@@ -256,7 +252,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["go"],
@@ -272,7 +267,7 @@
     "rust": {
       "extensions": [".rs"],
       "filetypes": ["rust"],
-      "languageId": "rust",
+      "languageId": ["rust"],
       "tools": {
         "lsp": [
           {
@@ -285,7 +280,7 @@
         ],
         "dap": [
           {
-            "executables": ["lldb", "rust-lldb", "codelldb"],
+            "executables": ["codelldb", "rust-lldb"],
             "vscodeExtension": "vadimcn.vscode-lldb",
             "adapter": "lldb"
           }
@@ -308,7 +303,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["cargo", "rustc"],
@@ -322,28 +316,23 @@
     "c_cpp": {
       "extensions": [".c", ".cpp", ".cc", ".cxx", ".h", ".hpp", ".hh"],
       "filetypes": ["c", "cpp"],
-      "languageId": "cpp",
+      "languageId": ["c", "cpp"],
       "tools": {
         "lsp": [
           {
             "executables": ["clangd"],
             "vscodeExtension": "llvm-vs-code-extensions.vscode-clangd",
             "settings": {
-              "clangd.path": "{path}"
+              "clangd.path": "{path}",
+              "C_Cpp.intellisenseEngine": "disabled"
             }
           },
           {
             "executables": ["ccls"],
             "vscodeExtension": "ccls-project.ccls",
             "settings": {
-              "ccls.launch.command": "{path}"
-            }
-          },
-          {
-            "executables": ["cpptools", "cpp-tools"],
-            "vscodeExtension": "ms-vscode.cpptools",
-            "settings": {
-              "C_Cpp.default.cppIntelliSenseEngine": "default"
+              "ccls.launch.command": "{path}",
+              "C_Cpp.intellisenseEngine": "disabled"
             }
           }
         ],
@@ -351,13 +340,10 @@
           {
             "executables": ["gdb"],
             "vscodeExtension": "ms-vscode.cpptools",
-            "adapter": "cppdbg",
-            "settings": {
-              "miDebuggerPath": "{path}"
-            }
+            "adapter": "cppdbg"
           },
           {
-            "executables": ["lldb"],
+            "executables": ["codelldb", "lldb"],
             "vscodeExtension": "vadimcn.vscode-lldb",
             "adapter": "lldb"
           }
@@ -382,11 +368,12 @@
           },
           {
             "executables": ["cppcheck"],
-            "vscodeExtension": "github.vscode-codeql",
-            "settings": {}
+            "vscodeExtension": "MS-CEINTUL.vscode-cppcheck",
+            "settings": {
+              "cppcheck.executable": "{path}"
+            }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["gcc", "g++", "cc", "c++"],
@@ -405,15 +392,13 @@
     "java": {
       "extensions": [".java"],
       "filetypes": ["java"],
-      "languageId": "java",
+      "languageId": ["java"],
       "tools": {
         "lsp": [
           {
             "executables": ["jdtls", "jdt-language-server"],
             "vscodeExtension": "redhat.java",
-            "settings": {
-              "java.jdt.ls.java.home": "{path}"
-            }
+            "settings": {}
           }
         ],
         "dap": [
@@ -434,12 +419,11 @@
         ],
         "linter": [
           {
-            "executables": ["checkstyle", "spotbugs"],
+            "executables": ["checkstyle"],
             "vscodeExtension": "redhat.java",
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["javac", "java"],
@@ -463,7 +447,7 @@
     "ruby": {
       "extensions": [".rb", ".erb"],
       "filetypes": ["ruby", "erb"],
-      "languageId": "ruby",
+      "languageId": ["ruby", "erb"],
       "tools": {
         "lsp": [
           {
@@ -476,11 +460,6 @@
           {
             "executables": ["ruby-lsp", "ruby_lsp"],
             "vscodeExtension": "Shopify.ruby-lsp",
-            "settings": {}
-          },
-          {
-            "executables": ["rubocop"],
-            "vscodeExtension": "misogi.ruby-rubocop",
             "settings": {}
           }
         ],
@@ -526,7 +505,6 @@
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["ruby", "irb"],
@@ -540,15 +518,13 @@
     "php": {
       "extensions": [".php", ".phtml"],
       "filetypes": ["php"],
-      "languageId": "php",
+      "languageId": ["php"],
       "tools": {
         "lsp": [
           {
             "executables": ["intelephense"],
-            "vscodeExtension": "bmewburn.vscode-intelephense-client",
-            "settings": {
-              "intelephense.environment.phpVersion": "{auto}"
-            }
+            "vscodeExtension": "bmewurn.vscode-intelephense-client",
+            "settings": {}
           },
           {
             "executables": ["phpactor"],
@@ -558,7 +534,7 @@
         ],
         "dap": [
           {
-            "executables": ["php", "xdebug"],
+            "executables": ["php"],
             "vscodeExtension": "xdebug.php-debug",
             "adapter": "php"
           }
@@ -586,23 +562,27 @@
         ],
         "linter": [
           {
-            "executables": ["phpcs", "php-cs-fixer"],
-            "vscodeExtension": "ikappas.phpcs",
+            "executables": ["phpcs"],
+            "vscodeExtension": "shevaua.phpcs",
             "settings": {
               "phpcs.executablePath": "{path}"
             }
           },
           {
-            "executables": ["phpstan", "psalm"],
+            "executables": ["phpstan"],
             "vscodeExtension": "SanderRonde.phpstan-vscode",
+            "settings": {}
+          },
+          {
+            "executables": ["psalm"],
+            "vscodeExtension": "Psalm.vscode-psalm",
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["php", "php-cli"],
-            "vscodeExtension": "bmewburn.vscode-intelephense-client",
+            "vscodeExtension": "bmewurn.vscode-intelephense-client",
             "settings": {}
           },
           {
@@ -617,7 +597,7 @@
     "csharp": {
       "extensions": [".cs", ".csx"],
       "filetypes": ["csharp"],
-      "languageId": "csharp",
+      "languageId": ["csharp"],
       "tools": {
         "lsp": [
           {
@@ -626,11 +606,6 @@
             "settings": {
               "omnisharp.path": "{path}"
             }
-          },
-          {
-            "executables": ["dotnet", "roslyn"],
-            "vscodeExtension": "ms-dotnettools.csharp",
-            "settings": {}
           }
         ],
         "dap": [
@@ -647,14 +622,7 @@
             "settings": {}
           }
         ],
-        "linter": [
-          {
-            "executables": ["dotnet-format"],
-            "vscodeExtension": "ms-dotnettools.csharp",
-            "settings": {}
-          }
-        ],
-        "treeSitter": [],
+        "linter": [],
         "compiler": [
           {
             "executables": ["dotnet", "msbuild", "mono"],
@@ -668,7 +636,7 @@
     "html_css": {
       "extensions": [".html", ".htm", ".css", ".scss", ".sass", ".less"],
       "filetypes": ["html", "css", "scss", "sass", "less"],
-      "languageId": "html",
+      "languageId": ["html", "css", "scss", "sass", "less"],
       "tools": {
         "lsp": [
           {
@@ -720,7 +688,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": []
       }
     },
@@ -728,7 +695,7 @@
     "shell_bash": {
       "extensions": [".sh", ".bash", ".zsh"],
       "filetypes": ["shellscript"],
-      "languageId": "shellscript",
+      "languageId": ["shellscript"],
       "tools": {
         "lsp": [
           {
@@ -767,7 +734,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["bash", "sh", "zsh"],
@@ -781,7 +747,7 @@
     "lua": {
       "extensions": [".lua"],
       "filetypes": ["lua"],
-      "languageId": "lua",
+      "languageId": ["lua"],
       "tools": {
         "lsp": [
           {
@@ -790,11 +756,6 @@
             "settings": {
               "lua.misc.executablePath": "{path}"
             }
-          },
-          {
-            "executables": ["emmylua-ls"],
-            "vscodeExtension": "actboy168.lua-debug",
-            "settings": {}
           }
         ],
         "dap": [
@@ -806,7 +767,7 @@
         ],
         "formatter": [
           {
-            "executables": ["lua-format", "stylua"],
+            "executables": ["lua-format"],
             "vscodeExtension": "Koihik.lua-formatter",
             "settings": {
               "lua.format.path": "{path}"
@@ -829,7 +790,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["lua", "luajit", "lua5.3", "lua5.4"],
@@ -843,7 +803,7 @@
     "dart": {
       "extensions": [".dart"],
       "filetypes": ["dart"],
-      "languageId": "dart",
+      "languageId": ["dart"],
       "tools": {
         "lsp": [
           {
@@ -865,9 +825,7 @@
           {
             "executables": ["dart"],
             "vscodeExtension": "Dart-Code.dart-code",
-            "settings": {
-              "dart.formatCommand": "{path}"
-            }
+            "settings": {}
           }
         ],
         "linter": [
@@ -879,7 +837,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["dart", "flutter"],
@@ -893,7 +850,7 @@
     "kotlin": {
       "extensions": [".kt", ".kts"],
       "filetypes": ["kotlin"],
-      "languageId": "kotlin",
+      "languageId": ["kotlin"],
       "tools": {
         "lsp": [
           {
@@ -927,7 +884,6 @@
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["kotlinc", "kotlin"],
@@ -946,12 +902,12 @@
     "sql": {
       "extensions": [".sql"],
       "filetypes": ["sql"],
-      "languageId": "sql",
+      "languageId": ["sql"],
       "tools": {
         "lsp": [
           {
             "executables": ["sql-language-server", "sqls"],
-            "vscodeExtension": " mtxr.sqltools",
+            "vscodeExtension": "mtxr.sqltools",
             "settings": {}
           },
           {
@@ -984,7 +940,6 @@
             }
           }
         ],
-        "treeSitter": [],
         "compiler": [
           {
             "executables": ["psql", "mysql", "sqlite3"],
@@ -998,7 +953,7 @@
     "json_yaml_toml": {
       "extensions": [".json", ".yaml", ".yml", ".toml", ".jsonc"],
       "filetypes": ["json", "yaml", "toml"],
-      "languageId": "json",
+      "languageId": ["json", "yaml", "toml"],
       "tools": {
         "lsp": [
           {
@@ -1045,36 +1000,12 @@
             "settings": {}
           }
         ],
-        "treeSitter": [],
         "compiler": []
       }
     }
   },
 
   "treeSitter": {
-    "note": "Tree-sitter parsers in VS Code/code-server are bundled inside extensions, not standalone executables on PATH. The grammar is selected by the extension, not by a CLI tool. Discovery does not scan for tree-sitter executables; this section is informational only.",
-    "extensions": {
-      "python": ["nvim-treesitter.python"],
-      "javascript": ["nvim-treesitter.javascript"],
-      "typescript": ["nvim-treesitter.typescript"],
-      "go": ["nvim-treesitter.go"],
-      "rust": ["nvim-treesitter.rust"],
-      "c": ["nvim-treesitter.c"],
-      "cpp": ["nvim-treesitter.cpp"],
-      "java": ["nvim-treesitter.java"],
-      "ruby": ["nvim-treesitter.ruby"],
-      "php": ["nvim-treesitter.php"],
-      "csharp": ["nvim-treesitter.csharp"],
-      "html": ["nvim-treesitter.html"],
-      "css": ["nvim-treesitter.css"],
-      "bash": ["nvim-treesitter.bash"],
-      "lua": ["nvim-treesitter.lua"],
-      "dart": ["nvim-treesitter.dart"],
-      "kotlin": ["nvim-treesitter.kotlin"],
-      "sql": ["nvim-treesitter.sql"],
-      "json": ["nvim-treesitter.json"],
-      "yaml": ["nvim-treesitter.yaml"],
-      "toml": ["nvim-treesitter.toml"]
-    }
+    "note": "Tree-sitter parsers in VS Code/code-server are bundled inside language extensions, not standalone executables on PATH. The grammar is selected by the extension, not by a CLI tool. This section is informational only — devtools-bridge does not scan for tree-sitter executables."
   }
 }
